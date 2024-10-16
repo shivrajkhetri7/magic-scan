@@ -39,7 +39,8 @@ uploads/Grade 9/Economics IX/cccc4b52-16c1-4ca6-9268-2920e5824925.pdf
 
 Below is the high-level architecture of the Magic Page Scan project:
 
-![Architecture](./magic-scan-poc-v2%201.png)
+
+![magic-scan-poc-v2 1](https://github.com/user-attachments/assets/2225ecde-a9ea-48a2-b9eb-7c3db5a1537e)
 
 ``` 
 
