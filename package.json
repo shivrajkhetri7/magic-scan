@@ -1,0 +1,40 @@
+{
+  "name": "magic-scan",
+  "version": "1.0.0",
+  "description": "\"this is test project \"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shivrajkhetri7/magic-scan.git"
+  },
+  "keywords": [
+    "\"SCAN",
+    "MAGIC",
+    "SCAN",
+    "PIC",
+    "SCAN\""
+  ],
+  "author": "shivraj khetri",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shivrajkhetri7/magic-scan/issues"
+  },
+  "homepage": "https://github.com/shivrajkhetri7/magic-scan#readme",
+  "dependencies": {
+    "@aws-sdk/client-batch": "^3.670.0",
+    "@aws-sdk/client-s3": "^3.670.0",
+    "@aws-sdk/client-sqs": "^3.670.0",
+    "aws-sdk": "^2.1691.0",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "mongodb": "^6.9.0",
+    "pdf-page-counter": "^1.0.3",
+    "pdf-parse": "^1.1.1",
+    "pg": "^8.13.0",
+    "sharp": "^0.33.5"
+  }
+}
