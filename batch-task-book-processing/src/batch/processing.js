@@ -2,6 +2,7 @@ const { s3Client, config } = require('../../config/awsConfig');
 const client = require('../../config/postgresConfig');
 const sharp = require('sharp');
 const axios = require('axios');
+const FormData = require('form-data');
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
@@ -35,7 +36,7 @@ async function generatePage(pdfFilePath, outputDir, numPages) {
 async function uploadPage(imagePath, s3Key, directory) {
     try {
         const fileStream = fs.createReadStream(imagePath);
-        
+
         // Construct the S3 Key with the specified directory
         const params = {
             Bucket: config.bucketName,
@@ -52,49 +53,49 @@ async function uploadPage(imagePath, s3Key, directory) {
     }
 }
 
-// Function to call Python API and generate vectors
 async function generateVector(imagePath) {
     try {
-        // Read the image file
-        const imageData = fs.readFileSync(imagePath);
+        // Create a FormData object to send the image file
+        const formData = new FormData();
+        formData.append('imageFile', fs.createReadStream(imagePath));
 
         // Send the image data to the vector API
-        // const response = await axios.post(config.vectorApiUrl, imageData, {
-        //     headers: { 'Content-Type': 'image/jpeg' },
-        // });
-
-        const staticObject = {
-            "filename": "english-reader-A-page-4.png",
-            "aiModel": "clip-ViT-L-14",
-            "embeddingSize": 768,
-            "vector": [
-                0.13211706280708313, -0.39454254508018494,
-                -0.0047263503074646, 1.9617048501968384,
-                0.15366367995738983, 0.011793643236160278,
-                0.17266198992729187, 0.23041927814483643,
-            ]
-        }
-        return staticObject;
+        const response = await axios.post(process.env.VECTOR_API_URL, formData, {
+            headers: {
+                'apikey': process.env.VECTOR_API_KEY,
+                'apisecret': process.env.VECTOR_API_SECRET,
+                ...formData.getHeaders(), // Include headers for form data
+            },
+        });
+        console.log('response', response)
+        // Assuming the response contains the vector data
+        return response.data; // Adjust this based on the actual response structure
     } catch (error) {
         console.error('Error generating vector:', error);
         throw new Error('Failed to generate vector from image');
     }
 }
 
+
 async function storeVector(client, vectorData) {
     const query = `
-        INSERT INTO "eSense"."ContentPageVector" ("contentId", "page", "status", "createdAt", "pageVector")
-        VALUES ($1, $2, $3, $4, $5);
+        INSERT INTO "eSense"."ContentPageVector" 
+        ("ContentId", "PageNumber", "Status", "CreatedAt", "PageVector", "UpdatedAt","PageImage")
+        VALUES ($1, $2, $3, $4, $5, $6, $7);
     `;
 
     const values = [
         vectorData.contentId,
-        vectorData.page,
+        vectorData.page,            // PageNumber
         vectorData.status,
-        vectorData.createdAt,
-        vectorData.pageVector, // Assuming this is in the correct format for gtsvector[]
+        vectorData.createdAt,       // Ensure this is a valid date format
+        JSON.stringify(vectorData.pageVector), // Convert to string
+        new Date(),
+        vectorData?.pageImage
     ];
 
+    // Log the input values for debugging
+    console.log('Input Values:', values);
     try {
         await client.query(query, values);
         console.log('Vector data stored in database');
@@ -103,6 +104,8 @@ async function storeVector(client, vectorData) {
         throw new Error('Failed to store vector data in database');
     }
 }
+
+
 
 async function getContentByFilePath(filePath) {
     const query = `
@@ -137,6 +140,7 @@ async function main(db, filePath) {
         const s3File = await s3Client.send(command);
 
         const contentDetails = await getContentByFilePath(filePath);
+        console.log('contentDetails', contentDetails)
         if (!contentDetails || contentDetails.length === 0) {
             return { status: 'failed', message: 'File not found in PostgreSQL' };
         }
@@ -179,16 +183,15 @@ async function main(db, filePath) {
 
             // Generate vector data by calling the Python API (passing the local image)
             const vectorData = await generateVector(imagePath);
-
             // Store the vector data in the database
             await storeVector(client, {
                 contentId: contentId,
                 pageVector: vectorData?.vector,
-                page: i + 1,
-                pagePath: filePath || "",
+                page: i + 1,                 // Assuming this corresponds to PageNumber
                 status: 1,
-                pageSize: fs.statSync(imagePath).size,
-                createdAt: createdAt,
+                createdAt: createdAt,        // Ensure this is a valid date
+                updatedAt: new Date(),  // Set UpdatedAt to current timestamp
+                pageImage: imageS3Key
             });
 
             // Upload image to S3 after generating vector

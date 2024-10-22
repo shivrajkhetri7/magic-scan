@@ -26,11 +26,12 @@
   "homepage": "https://github.com/shivrajkhetri7/magic-scan#readme",
   "dependencies": {
     "@aws-sdk/client-batch": "^3.670.0",
-    "@aws-sdk/client-s3": "^3.670.0",
+    "@aws-sdk/client-s3": "^3.675.0",
     "@aws-sdk/client-sqs": "^3.670.0",
     "aws-sdk": "^2.1691.0",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
+    "form-data": "^4.0.1",
     "mongodb": "^6.9.0",
     "pdf-page-counter": "^1.0.3",
     "pdf-parse": "^1.1.1",
