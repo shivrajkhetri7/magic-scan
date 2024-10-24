@@ -31,7 +31,7 @@ const App: React.FC = () => {
     }
   };
 
-  const captureImage = () => {
+  const captureImage = async () => {
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext('2d');
       if (context) {
@@ -40,6 +40,9 @@ const App: React.FC = () => {
         context.drawImage(videoRef.current, 0, 0, videoRef.current.videoWidth, videoRef.current.videoHeight);
         const dataUrl = canvasRef.current.toDataURL('image/png');
         setImageSrc(dataUrl);
+        
+        // Immediately upload the captured image
+        await uploadImage(dataUrl);
       }
     }
   };
@@ -54,8 +57,8 @@ const App: React.FC = () => {
     setEnableCapture(false);
   };
 
-  const uploadImage = async () => {
-    if (imageSrc) {
+  const uploadImage = async (image: string) => {
+    if (image) {
       try {
         setUploadProgress(0); // Reset progress
         const fileName = "abc.png"; // You can change this to any desired file name.
@@ -64,7 +67,7 @@ const App: React.FC = () => {
           'http://localhost:8000/magic-scan/upload',
           {
             fileName: fileName,
-            imageBase64: imageSrc.split(',')[1], // Remove the "data:image/png;base64," part
+            imageBase64: image.split(',')[1], // Remove the "data:image/png;base64," part
           },
           {
             headers: {
@@ -120,14 +123,6 @@ const App: React.FC = () => {
           >
             Capture Image
           </Button>
-          <Button
-            variant="contained"
-            color="success"
-            onClick={uploadImage}
-            disabled={!imageSrc}
-          >
-            Upload Image
-          </Button>
         </Box>
 
         {uploadProgress !== null && (
@@ -157,7 +152,6 @@ const App: React.FC = () => {
               {uploadedContent.map((content) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={content.ContentID}>
                   <Card sx={{ height: 300, width: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    {/* Display InsertDriveFileIcon */}
                     <InsertDriveFileIcon sx={{ fontSize: 100, color: 'action.active', cursor: 'pointer' }} onClick={() => window.open(content.s3Url, '_blank')} />
                     <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
                       <Typography variant="h6" onClick={() => window.open(content.s3Url, '_blank')} sx={{ cursor: 'pointer' }}>

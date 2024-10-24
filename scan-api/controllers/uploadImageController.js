@@ -47,8 +47,8 @@ const getVectorMatch = async (vectorToMatch) => {
         `;
 
         const formattedVector = JSON.stringify(vectorToMatch);
-        const matchThreshold = parseFloat(process.env.VECTOR_THRESHOLD) || 0.1;
-        const matchCount = 5;
+        const matchThreshold = parseFloat(process.env.VECTOR_THRESHOLD) || 0.3;
+        const matchCount = 2;
 
         const res = await client.query(query, [formattedVector, matchThreshold, matchCount]);
 
@@ -156,7 +156,8 @@ const uploadImageCont = async (params) => {
         if (vectorData) {
             const vectorToMatch = vectorData?.vector || [];
             const vectorMatch = await getVectorMatch(vectorToMatch);
-            
+            console.log('vectorMatch',vectorMatch)
+            // console.log('vectorToMatch',JSON.stringify(vectorToMatch))
             //TODO : for multiple resources 
             if (vectorMatch.length && vectorMatch[0]?.ContentId) {
                 const ContentId = vectorMatch[0]?.ContentId;
